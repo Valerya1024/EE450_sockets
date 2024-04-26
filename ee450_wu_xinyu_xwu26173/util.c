@@ -272,21 +272,20 @@ void unencrypt(char* str) {
 #endif
 
 
-// int main() {
-//     // test_room("S301");
-//     char username[10];
-//     memset(username, '\0', 10);
-//     strcpy(username, "James");
-//     char pwd[10];
-//     memset(pwd, '\0', 10);
-//     strcpy(pwd, "SODids392");
-
-//     test_member(username, pwd);
-//     // char test[MAXLEN];
-//     // memset(test, '\0', MAXLEN);
-//     // strcpy(test, "SODids392");
-//     // encrypt(test);
-//     // printf("%s %lu", test, strlen(test));
-//     // unencrypt(test);
-//     // printf("%s %lu", test, strlen(test));
+ //int main() {
+// //     // test_room("S301");
+// //     char username[10];
+// //     memset(username, '\0', 10);
+// //     strcpy(username, "James");
+// //     char pwd[10];
+// //     memset(pwd, '\0', 10);
+// //     strcpy(pwd, "SODids392");
+// //     test_member(username, pwd);
+//     char test[MAXLEN];
+//     memset(test, '\0', MAXLEN);
+//     strcpy(test, "Welcome-To-EE450!");
+//     encrypt(test);
+//     printf("%s %lu\n", test, strlen(test));
+//     unencrypt(test);
+//     printf("%s %lu\n", test, strlen(test));
 // }
