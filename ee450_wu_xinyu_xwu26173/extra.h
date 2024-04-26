@@ -1,0 +1,1 @@
+#define M_FILE_PATH "./member.txt"
