@@ -142,6 +142,12 @@ int handle_login(int sockfd, char* unencrypt_username) {
     if (RECV(sockfd, buffer) < 0) {
         LOG_ERR("receive error");
     }
+
+    if (strlen(buffer) == 0) { //client exited, close connection and exit
+        close(sockfd);
+        exit(0);
+    }
+    
     sscanf(buffer, "%s %s", username, pwd);
     strcpy(unencrypt_username, username);
     unencrypt(unencrypt_username);
@@ -183,7 +189,7 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
         LOG_ERR("receive error");
     }
 
-    if (strlen(buffer) == 0) {
+    if (strlen(buffer) == 0) { //client exited, close connection and exit
         close(sockfd);
         exit(0);
     }
@@ -196,6 +202,18 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
         printf(MAIN_MSG_AVAILABILITY_REQ, room, username, SERVER_M_TCP_PORT);
     } else {
         printf(MAIN_MSG_RESERVE_REQ, room, username, SERVER_M_TCP_PORT);
+    }
+
+    if (mode == GUEST_MODE && action == RESERVE) {
+        // NOT ACCESSIBLE
+        printf(MAIN_MSG_RESERVE_GUEST, username);
+        res = ERR_NOT_ACCESSIBLE;
+        memset(buffer, '\0', MAXLEN);
+        sprintf(buffer, "%d", res);
+        if (SEND(sockfd, buffer) < 0) {
+            LOG_ERR("send error");
+        }
+        printf(MAIN_MSG_RESERVE_ERROR_RESP);
     }
 
     //printf("receive req: %s %s\n", buffer, server);
@@ -211,20 +229,11 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
             LOG_ERR("send error");
         }
         printf(MAIN_MSG_SEND_RESERVE_RESP);
+        
         return;
     }
 
-    if (mode == GUEST_MODE && action == RESERVE) {
-        // NOT ACCESSIBLE
-        printf(MAIN_MSG_RESERVE_GUEST, username);
-        res = ERR_NOT_ACCESSIBLE;
-        memset(buffer, '\0', MAXLEN);
-        sprintf(buffer, "%d", res);
-        if (SEND(sockfd, buffer) < 0) {
-            LOG_ERR("send error");
-        }
-        printf(MAIN_MSG_RESERVE_ERROR_RESP);
-    } else if (action == QUERY) {
+    if (action == QUERY) {
         //QUERY
         printf(MAIN_MSG_AVAILABILITY_FORWARD_REQ, server);
         //send to

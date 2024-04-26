@@ -160,7 +160,7 @@ int login(int sockfd, char* username,char* pwd) {
         }
 
         if (mode == GUEST_MODE) {
-            printf(GUEST_MSG_GUEST_REQ, username, my_addr.sin_port);
+            printf(GUEST_MSG_GUEST_REQ, username, ntohs(my_addr.sin_port));
         } else {
             printf(MEMBER_MSG_LOGIN_REQ, username);
         }
