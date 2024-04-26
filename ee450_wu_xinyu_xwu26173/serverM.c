@@ -28,6 +28,12 @@ static struct sockaddr_in server_M_udp_addr;
 static member_t* db;
 static room_t* room_db;
 
+#ifdef EXTRA
+#define M_FILE_PATH "./member_extra.txt"
+#else
+#define M_FILE_PATH "./member.txt"
+#endif
+
 int main() {
     //bootup
     db = malloc(sizeof(member_t)); //member db linked list

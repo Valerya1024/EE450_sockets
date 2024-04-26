@@ -28,6 +28,12 @@ static struct sockaddr_in server_M_udp_addr;
 static member_t* db;
 static room_t* room_db;
 
+#ifdef EXTRA
+#define M_FILE_PATH "./member_extra.txt"
+#else
+#define M_FILE_PATH "./member.txt"
+#endif
+
 int main() {
     //bootup
     db = malloc(sizeof(member_t)); //member db linked list
@@ -176,23 +182,36 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
     if (RECV(sockfd, buffer) < 0) {
         LOG_ERR("receive error");
     }
+
+    if (strlen(buffer) == 0) {
+        close(sockfd);
+        exit(0);
+    }
     
     sscanf(buffer, "%d %d %s", &mode, &action, room);
     strcpy(server, room);
     server[1] = '\0';
-    //printf("receive req: %s %s\n", buffer, server);
-    if (strcmp(server, "S") == 0) {
-        target_addr = server_S_addr;
-    } else if (strcmp(server, "D") == 0) {
-        target_addr = server_D_addr;
-    } else {
-        target_addr = server_U_addr;
-    }
 
     if (action == QUERY) {
         printf(MAIN_MSG_AVAILABILITY_REQ, room, username, SERVER_M_TCP_PORT);
     } else {
         printf(MAIN_MSG_RESERVE_REQ, room, username, SERVER_M_TCP_PORT);
+    }
+
+    //printf("receive req: %s %s\n", buffer, server);
+    if (strcmp(server, "S") == 0) {
+        target_addr = server_S_addr;
+    } else if (strcmp(server, "D") == 0) {
+        target_addr = server_D_addr;
+    } else if (strcmp(server, "U") == 0) {
+        target_addr = server_U_addr;
+    } else {
+        sprintf(buffer, "%d", ERR_NOT_FOUND);
+        if (SEND(sockfd, buffer) < 0) {
+            LOG_ERR("send error");
+        }
+        printf(MAIN_MSG_SEND_RESERVE_RESP);
+        return;
     }
 
     if (mode == GUEST_MODE && action == RESERVE) {

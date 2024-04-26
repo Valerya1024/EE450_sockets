@@ -1,22 +1,22 @@
-all : serverS serverD serverU serverM client
+all : clean serverS serverD serverU serverM client
 
 client : client.o connection.o util.o
-	gcc client.o util.o connection.o -o client
+	gcc client.o util.o connection.o -o client -lm
 
 serverS : serverS.o util.o connection.o
-	gcc serverS.o util.o connection.o -o serverS
+	gcc serverS.o util.o connection.o -o serverS -lm
 
 serverD : serverD.o util.o connection.o
-	gcc serverD.o util.o connection.o -o serverD
+	gcc serverD.o util.o connection.o -o serverD -lm
 
 serverU : serverU.o util.o connection.o
-	gcc serverU.o util.o connection.o -o serverU
+	gcc serverU.o util.o connection.o -o serverU -lm
 
 serverM : serverM.o util.o connection.o
-	gcc serverM.o util.o connection.o -o serverM
+	gcc serverM.o util.o connection.o -o serverM -lm
 
 util.o : util.c util.h
-	gcc -c -g -Wall util.c -o util.o
+	gcc -c -g -Wall util.c -o util.o -lm
 
 connection.o : connection.c connection.h
 	gcc -c -g -Wall connection.c -o connection.o
@@ -46,3 +46,11 @@ backup :
 	cp readme.txt ee450_wu_xinyu_xwu26173/
 	cp Makefile ee450_wu_xinyu_xwu26173/
 	tar -czvf ee450_wu_xinyu_xwu26173.tar.gz ee450_wu_xinyu_xwu26173/
+
+extra : 
+	echo "#define EXTRA" > extra.h
+	make all
+
+norm :
+	echo "             " > extra.h
+	make all

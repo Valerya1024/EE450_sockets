@@ -134,7 +134,7 @@ int login(int sockfd, char* username,char* pwd) {
         char usrtname_encrypted[MAXLEN];
         strcpy(usrtname_encrypted, username);
         encrypt(usrtname_encrypted);
-        printf(CLIENT_MSG_ENTER_PWD);
+        printf(CLIENT_MSG_ENTER_PASSWORD);
         getline(&pwd, &size, stdin);
         pwd[strlen(pwd)-1] = '\0';
         encrypt(pwd);

@@ -1,4 +1,4 @@
-all : serverS serverD serverU serverM client
+all : clean serverS serverD serverU serverM client
 
 client : client.o connection.o util.o
 	gcc client.o util.o connection.o -o client
@@ -46,3 +46,11 @@ backup :
 	cp readme.txt ee450_wu_xinyu_xwu26173/
 	cp Makefile ee450_wu_xinyu_xwu26173/
 	tar -czvf ee450_wu_xinyu_xwu26173.tar.gz ee450_wu_xinyu_xwu26173/
+
+extra : 
+	echo "#define EXTRA" > extra.h
+	make all
+
+norm :
+	echo "             " > extra.h
+	make all

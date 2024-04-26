@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 int lookup_room(room_t* db, char* target) {
     room_t * node = db->next;
@@ -170,46 +171,101 @@ void test_room(char* room) {
 
 void test_member(char* username, char* pwd) {
     member_t* db = malloc(sizeof(member_t));
-    load_member("./member.txt", db);
+    encrypt(username);
+    encrypt(pwd);
+    load_member("./member_extra.txt", db);
     print_member(db);
     printf("%d", lookup_member(db, username, pwd));
     destroy_member_db(db);
 }
 
-#ifdef EXTRA
-#else
-char shift_from(char in, char c, int n) {
+char shift_from(char in, char c, int n, int shift) {
     int dist = in-c;
     if (dist >= 0 && dist < n) {
-        dist += ENCRYPT_SHIFT;
+        dist += shift;
         if (dist >= n) dist -= n;
     }
     return c + dist;
 }
-void encrypt(char* str) {
-    int pos = 0;
-    while (pos < strlen(str)) {
-        str[pos] = shift_from(str[pos], 'a', 26);
-        str[pos] = shift_from(str[pos], 'A', 26);
-        str[pos] = shift_from(str[pos], '0', 10);
-        pos++;
-    }
-}
 
-char shift_back(char in, char c, int n) {
+char shift_back(char in, char c, int n, int shift) {
     int dist = in-c;
     if (dist >= 0 && dist < n) {
-        dist -= ENCRYPT_SHIFT;
+        dist -= shift;
         if (dist < 0) dist += n;
     }
     return c + dist;
 }
+
+#ifdef EXTRA
+
+void encrypt(char* str) {
+    char encrypt[MAXLEN];
+    memset(encrypt, ' ', MAXLEN);
+    int pos = 0;
+    int len = strlen(str);
+    int h = (int) floor(sqrt(len));
+    int w = (int) ceil(sqrt(len));
+    if (w*h < len) h++;
+
+    for (int i = 0; i < h; i++) {
+        for (int j=0; j < w; j++) {
+            if (str[j*h + i] == '\0') {
+                encrypt[pos++] = '`';
+            } else {
+                encrypt[pos] = str[j*h + i];
+                encrypt[pos] = shift_from(encrypt[pos], '0', 10, i+j+1);
+                encrypt[pos] = shift_from(encrypt[pos], 'A', 26, i+j+1);
+                encrypt[pos] = shift_from(encrypt[pos], 'a', 26, i+j+1);
+                pos++;
+            }
+        }
+    }
+    
+    encrypt[pos] = '\0';
+    strcpy(str, encrypt);
+}
+
+void unencrypt(char* str) {
+    char unencrypt[MAXLEN];
+    memset(unencrypt, ' ', MAXLEN);
+    int pos = 0;
+    int len = strlen(str);
+    int h = (int) floor(sqrt(len));
+    int w = (int) ceil(sqrt(len));
+    for (int i = 0; i < w; i++) {
+        for (int j=0; j < h; j++) {
+            if (str[i + j*w] == '`') {
+                unencrypt[pos++] = '\0';
+            } else {
+                unencrypt[pos] = str[i + j*w];
+                unencrypt[pos] = shift_back(unencrypt[pos], '0', 10, i+j+1);
+                unencrypt[pos] = shift_back(unencrypt[pos], 'A', 26, i+j+1);
+                unencrypt[pos] = shift_back(unencrypt[pos], 'a', 26, i+j+1);
+                pos++;
+            }
+        }
+    }
+    unencrypt[pos] = '\0';
+    strcpy(str, unencrypt);
+}
+#else
+void encrypt(char* str) {
+    int pos = 0;
+    while (pos < strlen(str)) {
+        str[pos] = shift_from(str[pos], 'a', 26, ENCRYPT_SHIFT);
+        str[pos] = shift_from(str[pos], 'A', 26, ENCRYPT_SHIFT);
+        str[pos] = shift_from(str[pos], '0', 10, ENCRYPT_SHIFT);
+        pos++;
+    }
+}
+
 void unencrypt(char* str) {
     int pos = 0;
     while (pos < strlen(str)) {
-        str[pos] = shift_back(str[pos], 'a', 26);
-        str[pos] = shift_back(str[pos], 'A', 26);
-        str[pos] = shift_back(str[pos], '0', 10);
+        str[pos] = shift_back(str[pos], 'a', 26, ENCRYPT_SHIFT);
+        str[pos] = shift_back(str[pos], 'A', 26, ENCRYPT_SHIFT);
+        str[pos] = shift_back(str[pos], '0', 10, ENCRYPT_SHIFT);
         pos++;
     }
 }
@@ -218,9 +274,19 @@ void unencrypt(char* str) {
 
 // int main() {
 //     // test_room("S301");
-//     // test_member("Mdphv", "VRGlgv625");
-//     char test[MAXLEN];
-//     strcpy(test, "Welcome to EE450!");
-//     encrypt(test);
-//     printf("%s %lu", test, strlen(test));
+//     char username[10];
+//     memset(username, '\0', 10);
+//     strcpy(username, "James");
+//     char pwd[10];
+//     memset(pwd, '\0', 10);
+//     strcpy(pwd, "SODids392");
+
+//     test_member(username, pwd);
+//     // char test[MAXLEN];
+//     // memset(test, '\0', MAXLEN);
+//     // strcpy(test, "SODids392");
+//     // encrypt(test);
+//     // printf("%s %lu", test, strlen(test));
+//     // unencrypt(test);
+//     // printf("%s %lu", test, strlen(test));
 // }

@@ -35,7 +35,7 @@
 
 #define CLIENT_MSG_BOOT_UP "Client is up and running.\n"
 #define CLIENT_MSG_ENTER_USERNAME "Please enter the username: "
-#define CLIENT_MSG_ENTER_PWD "Please enter the password: (Press “Enter” to skip) "
+#define CLIENT_MSG_ENTER_PASSWORD "Please enter the password: (Press “Enter” to skip) "
 
 #define CLIENT_MSG_ENTER_ROOM "Please enter the room code: "
 #define CLIENT_MSG_ENTER_ACTION "Would you like to search for the availability or make a reservation? (Enter “Availability” to search for the availability or Enter “Reservation” to make a reservation ): "
