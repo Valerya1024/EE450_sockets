@@ -129,6 +129,7 @@ int login(int sockfd, char* username,char* pwd) {
 
     while (res <= 0) {
         //input name and pwd
+        printf(CLIENT_MSG_ENTER_USERNAME);
         getline(&username, &size, stdin);
         username[strlen(username)-1] = '\0';
         char usrtname_encrypted[MAXLEN];
