@@ -5,6 +5,7 @@
 #define ERR_PWD -3
 #define ERR_NOT_ACCESSIBLE -4
 #define MAXLEN 1024
+#define INPUT_MAXLEN 50
 #define TRUE 1
 #define FALSE 0
 
@@ -19,6 +20,7 @@
 #define RESERVE 4
 
 #define ENCRYPT_SHIFT 3
+#define NUM_BACKEND 3
 
 #define LOG_ERR(msg) do {\
     perror(msg);\

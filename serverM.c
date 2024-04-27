@@ -52,6 +52,7 @@ int main() {
     close(sockfd_udp);
 }
 
+// boot up main server
 void bootup_M() {
     // Load members from file
     load_member(M_FILE_PATH, db);
@@ -66,6 +67,15 @@ void bootup_M() {
     SET_ADDR(server_M_udp_addr, SERVER_M_UDP_PORT);
 }
 
+
+void sigchld_handler(int s) {
+    // waitpid() might overwrite errno, so we save and restore it:
+    int saved_errno = errno;
+    while(waitpid(-1, NULL, WNOHANG) > 0);
+    errno = saved_errno;
+}
+
+// boot up main server, set up tcp
 int bootup_M_tcp(int sockfd_udp) {
     int sockfd, new_fd;
 
@@ -111,18 +121,17 @@ int bootup_M_tcp(int sockfd_udp) {
 
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
-            // if (send(new_fd, "Hello, world!", 13, 0) == -1) {
-            //     perror("send");
-            // }
             char unencrypt_username[MAXLEN];
             int res = -1;
             while (res < 0) {
+                // handle user login, loop until successful
                 res = handle_login(new_fd, unencrypt_username);
             }
             while (TRUE) {
+                // handle query / reserve action
                 handle_action(new_fd, sockfd_udp, unencrypt_username);
             }
-            close(new_fd); //done, exit
+            close(new_fd);
             exit(0);
         }
         close(new_fd); // parent doesn't need this
@@ -131,6 +140,7 @@ int bootup_M_tcp(int sockfd_udp) {
     return sockfd;
 }
 
+// handle user login
 int handle_login(int sockfd, char* unencrypt_username) {
     char buffer[MAXLEN];
     char username[MAXLEN];
@@ -139,6 +149,7 @@ int handle_login(int sockfd, char* unencrypt_username) {
     memset(username, '\0', MAXLEN);
     memset(pwd, '\0', MAXLEN);
     int res;
+    // recv login request
     if (RECV(sockfd, buffer) < 0) {
         LOG_ERR("receive error");
     }
@@ -148,17 +159,22 @@ int handle_login(int sockfd, char* unencrypt_username) {
         exit(0);
     }
     
+    // parse login request
     sscanf(buffer, "%s %s", username, pwd);
+    // get unencrypt username
     strcpy(unencrypt_username, username);
     unencrypt(unencrypt_username);
     //GUEST MODE
     if (strlen(pwd) == 0) {
         printf(MAIN_MSG_GUEST_REQ, unencrypt_username, SERVER_M_TCP_PORT, unencrypt_username);
         res = LOGIN_GUEST;
-    } else { // MEMBER
+    } else { 
+        // MEMBER MODE
         printf(MAIN_MSG_LOGIN_REQ, unencrypt_username, SERVER_M_TCP_PORT);
+        // look up member in db
         res = lookup_member(db, username, pwd);
     }
+    // prepare and send response message
     sprintf(buffer, "%d", res);
     if (SEND(sockfd, buffer) < 0) {
         LOG_ERR("send error");
@@ -171,6 +187,7 @@ int handle_login(int sockfd, char* unencrypt_username) {
     return res;
 }
 
+// handle action
 void handle_action(int sockfd, int udp_sockfd, char* username) {
     char buffer[MAXLEN];
     char room[MAXLEN];
@@ -185,6 +202,7 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
     struct sockaddr from;
     socklen_t addr_len = sizeof(struct sockaddr);
 
+    // recv query / reserve request
     if (RECV(sockfd, buffer) < 0) {
         LOG_ERR("receive error");
     }
@@ -194,6 +212,7 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
         exit(0);
     }
     
+    // parse query / reserve request
     sscanf(buffer, "%d %d %s", &mode, &action, room);
     strcpy(server, room);
     server[1] = '\0';
@@ -203,7 +222,8 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
     } else {
         printf(MAIN_MSG_RESERVE_REQ, room, username, SERVER_M_TCP_PORT);
     }
-
+    
+    // guest try to reserve
     if (mode == GUEST_MODE && action == RESERVE) {
         // NOT ACCESSIBLE
         printf(MAIN_MSG_RESERVE_GUEST, username);
@@ -214,9 +234,10 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
             LOG_ERR("send error");
         }
         printf(MAIN_MSG_RESERVE_ERROR_RESP);
+        return;
     }
 
-    //printf("receive req: %s %s\n", buffer, server);
+    // get backend server addr
     if (strcmp(server, "S") == 0) {
         target_addr = server_S_addr;
     } else if (strcmp(server, "D") == 0) {
@@ -224,31 +245,33 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
     } else if (strcmp(server, "U") == 0) {
         target_addr = server_U_addr;
     } else {
+        // no related backend
         sprintf(buffer, "%d", ERR_NOT_FOUND);
         if (SEND(sockfd, buffer) < 0) {
             LOG_ERR("send error");
         }
         printf(MAIN_MSG_SEND_RESERVE_RESP);
-        
         return;
     }
 
     if (action == QUERY) {
         //QUERY
         printf(MAIN_MSG_AVAILABILITY_FORWARD_REQ, server);
-        //send to
+        //forward to backend server
         //printf("udp socket fd: %d, target port%d\n", udp_sockfd, target_addr.sin_port);
         if (SEND_TO(udp_sockfd, buffer, target_addr) < 0) {
             LOG_ERR("send error");
         }
-        //recv from
+        //recv response from backend server
         memset(buffer, '\0', MAXLEN);
         if (RECV_FROM(udp_sockfd, buffer, from, &addr_len) < 0) {
             LOG_ERR("receive error");
         }
 
+        //parse response
         sscanf(buffer, "%d", &res);
 
+        // send response to client
         printf(MAIN_MSG_RECEIVE_AVAILABILITY_RESP, server, SERVER_M_UDP_PORT);
         sprintf(buffer, "%d", res);
         if (SEND(sockfd, buffer) < 0) {
@@ -258,25 +281,31 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
     } else {
         //RESERVE
         printf(MAIN_MSG_RESERVE_FORWARD_REQ, server);
-        //send to
+        //forward to backend server
         if (SEND_TO(udp_sockfd, buffer, target_addr) < 0) {
             LOG_ERR("send error");
         }
-        //recv from
+        //recv response from backend server
         memset(buffer, '\0', MAXLEN);
         if (RECV_FROM(udp_sockfd, buffer, from, &addr_len) < 0) {
             LOG_ERR("receive error");
         }
 
+        //parse response
         sscanf(buffer, "%d", &res);
 
         if (res >= 0) {
+            // if updated
             printf(MAIN_MSG_RECEIVE_RESERVE_RESP_UPDATED, server, SERVER_M_UDP_PORT);
+            // update local room count
             reserve_room(room_db, room);
             printf(MAIN_MSG_ROOM_UPDATED, room);
         } else {
+            // not updated
             printf(MAIN_MSG_RECEIVE_RESERVE_RESP, server, SERVER_M_UDP_PORT);
         }
+
+        // send response to client
         sprintf(buffer, "%d", res);
         if (SEND(sockfd, buffer) < 0) {
             LOG_ERR("send error");
@@ -286,13 +315,7 @@ void handle_action(int sockfd, int udp_sockfd, char* username) {
     
 }
 
-void sigchld_handler(int s) {
-    // waitpid() might overwrite errno, so we save and restore it:
-    int saved_errno = errno;
-    while(waitpid(-1, NULL, WNOHANG) > 0);
-    errno = saved_errno;
-}
-
+// boot up main server udp
 int bootup_M_udp() {
 
     /***************************UDP*******************************/
@@ -318,16 +341,20 @@ int bootup_M_udp() {
     if (BIND(sockfd, server_M_udp_addr) < 0) {
         LOG_ERR("bind error");
     }
-
-    for (int i = 0; i<3;i++){
-        // recv from
+    
+    // get room status from backend
+    for (int i = 0; i < NUM_BACKEND;i++){
+        // recv room status from
         if ((received_bytes = RECV_FROM(sockfd, buffer, from, &addr_len)) < 0) {
             LOG_ERR("receive error");
         }
-
         buffer[received_bytes] = '\0';
         //printf("%s", buffer);
+
+        // build local room database
         load_room_str(room_db, buffer);
+
+        //get server name
         buffer[1] = '\0';
         printf(MAIN_MSG_RECEIVE_ROOM_STATUS, buffer, SERVER_M_UDP_PORT);
 

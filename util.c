@@ -123,6 +123,7 @@ void destroy_member_db(member_t* db) {
     }
 }
 
+// load member from file to linked list
 void load_member(char* file_path, member_t* db) {
     FILE *fp;
     char row[MAXLEN];
@@ -146,6 +147,7 @@ void load_member(char* file_path, member_t* db) {
     fclose(fp);
 }
 
+// traverse & print member db
 void print_member(member_t* db) {
     db = db->next;
     while (db != NULL) {
@@ -154,6 +156,7 @@ void print_member(member_t* db) {
     }
 }
 
+// test
 void test_room(char* room) {
     room_t* db_room = malloc(sizeof(room_t));
     char room_str[MAXLEN];
@@ -169,6 +172,7 @@ void test_room(char* room) {
     destroy_room_db(db_room);
 }
 
+// test
 void test_member(char* username, char* pwd) {
     member_t* db = malloc(sizeof(member_t));
     encrypt(username);
@@ -179,6 +183,7 @@ void test_member(char* username, char* pwd) {
     destroy_member_db(db);
 }
 
+// shift characters
 char shift_from(char in, char c, int n, int shift) {
     int dist = in-c;
     if (dist >= 0 && dist < n) {
@@ -187,7 +192,6 @@ char shift_from(char in, char c, int n, int shift) {
     }
     return c + dist;
 }
-
 char shift_back(char in, char c, int n, int shift) {
     int dist = in-c;
     if (dist >= 0 && dist < n) {
@@ -198,7 +202,7 @@ char shift_back(char in, char c, int n, int shift) {
 }
 
 #ifdef EXTRA
-
+// extra credit encryption algorithm
 void encrypt(char* str) {
     char encrypt[MAXLEN];
     memset(encrypt, ' ', MAXLEN);
@@ -250,6 +254,7 @@ void unencrypt(char* str) {
     strcpy(str, unencrypt);
 }
 #else
+// basic encryption algorithm
 void encrypt(char* str) {
     int pos = 0;
     while (pos < strlen(str)) {
@@ -272,7 +277,7 @@ void unencrypt(char* str) {
 #endif
 
 
- //int main() {
+//int main() {
 // //     // test_room("S301");
 // //     char username[10];
 // //     memset(username, '\0', 10);

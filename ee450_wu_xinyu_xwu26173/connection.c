@@ -12,7 +12,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-
+// boot up backend server
 int bootup_backend(room_t* db, int port, int mainport, char* fpath) {
     struct sockaddr_in server_M_udp_addr;
     struct sockaddr_in this_addr;
@@ -49,8 +49,10 @@ int bootup_backend(room_t* db, int port, int mainport, char* fpath) {
     
     //printf("%d", ntohs(server_M_udp_addr.sin_port));
 
+    // status sent, close connection
     close(sockfd);
 
+    // create new socket for handling query / availability request
      if ((sockfd = CREATE_UDP_SOCKET()) < 0) {
         LOG_ERR("socket creation error");
     }
@@ -63,6 +65,7 @@ int bootup_backend(room_t* db, int port, int mainport, char* fpath) {
     return sockfd;
 }
 
+// handle query / availability request
 int handle_request(int sockfd, room_t* db, char* server_name) {
     char buffer[MAXLEN];
     char msg[MAXLEN];
@@ -80,6 +83,7 @@ int handle_request(int sockfd, room_t* db, char* server_name) {
         if (action == RESERVE) {
             //RECEIVE RESERVE REQ
             printf(BACKEND_MSG_RESERVE_REQ, server_name);
+            // reserve room
             res = reserve_room(db, room);
             if (res == ERR_NOT_AVAILABLE) {
                 //NOT AVAILABLE
@@ -97,7 +101,7 @@ int handle_request(int sockfd, room_t* db, char* server_name) {
                 sprintf(msg, "%d", ERR_NOT_FOUND);
                 SEND_TO(sockfd, msg, from);
             }
-            //SENT RESERVE RESP
+            //SEND RESERVE RESPONSE
             if (res >= 0) {
                 printf(BACKEND_MSG_RESERVE_RESP_UPDATED, server_name);
             } else {
@@ -108,16 +112,18 @@ int handle_request(int sockfd, room_t* db, char* server_name) {
             printf(BACKEND_MSG_AVAILABILITY_REQ, server_name);
             res = lookup_room(db, room);
             if (res > 0) {
+                // Available
                 printf(BACKEND_MSG_AVAILABLE, room);
             } else if (res == ERR_NOT_FOUND) {
                 // NO SUCH ROOM
                 printf(BACKEND_MSG_AVAILABILITY_NO_ROOM);
             } else {
+                // not available
                 printf(BACKEND_MSG_NOT_AVAILABLE, room);
             }
             sprintf(msg, "%d", res);
             SEND_TO(sockfd, msg, from);
-            //SENT AVAIL RESP
+            //SENT AVAIL RESPONSE
             printf(BACKEND_MSG_AVAILABILITY_RESP, server_name);
         }
     }
