@@ -166,8 +166,8 @@ int login(int sockfd, char* username,char* pwd) {
             username[strlen(username)-1] = '\0';
             
             // invalid input handling
-            if (strlen(username) == 0 || strlen(username) > INPUT_MAXLEN) {
-                printf(CLIENT_INVALID_USERNAME_INPUT, INPUT_MAXLEN);
+            if (strlen(username) < UNAME_MINLEN || strlen(username) > INPUT_MAXLEN) {
+                printf(CLIENT_INVALID_USERNAME_INPUT, UNAME_MINLEN, INPUT_MAXLEN);
             } else {
                 // contain space
                 int space = FALSE;

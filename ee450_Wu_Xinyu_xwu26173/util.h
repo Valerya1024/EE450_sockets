@@ -6,6 +6,7 @@
 #define ERR_NOT_ACCESSIBLE -4
 #define MAXLEN 1024
 #define INPUT_MAXLEN 50
+#define UNAME_MINLEN 5
 #define TRUE 1
 #define FALSE 0
 

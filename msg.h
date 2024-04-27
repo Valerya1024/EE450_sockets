@@ -58,7 +58,7 @@
 #define GUEST_MSG_RESERVE_RESP "Permission denied: Guest cannot make a reservation.\n"
 
 //edge case handling
-#define CLIENT_INVALID_USERNAME_INPUT "ERROR: Length of username should be > 0 and <= %d\n"
+#define CLIENT_INVALID_USERNAME_INPUT "ERROR: Length of username should be >= %d and <= %d\n"
 #define CLIENT_INVALID_PWD_INPUT "ERROR: Length of password should be <= %d\n"
 #define CLIENT_INVALID_ROOM_INPUT "ERROR: Length of room code should be <= %d\n"
 #define CLIENT_INVALID_ACTION_INPUT "ERROR: Enter “Availability” or “Reservation”\n"
