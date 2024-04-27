@@ -39,9 +39,9 @@ const char* MEMBER_FILE = "member.txt";
 
 //read the member information from the txt file and save it into a map<string,int> data structure
 //find_first_not_of() from chatgpt search result
-map<string, string> readSaveFile(const string& filename) {
+map<string, string> readSaveFile() {
     map<string, string> member;
-    ifstream file(filename);
+    ifstream file(MEMBER_FILE);
     string line;
 
     if (file.is_open()) {
@@ -59,7 +59,7 @@ map<string, string> readSaveFile(const string& filename) {
         }
         file.close();
     } else {
-        cerr << "Unable to open file: " << filename << endl;
+        cerr << "Unable to open file: " << MEMBER_FILE << endl;
     }
     return member;
 }
@@ -135,7 +135,7 @@ cout<<"The room status of Room "<<roomcode<<" has been updated."<<endl;
 int main(){
     cout<<"The main server is up and running."<<endl;
     //map users stored the member info from txt
-    map<string,string> users=readSaveFile(MEMBER_FILE);
+    map<string,string> users=readSaveFile();
     // Maps to store data received from backend servers
     map<string, int> sroom;
     map<string, int> droom;
