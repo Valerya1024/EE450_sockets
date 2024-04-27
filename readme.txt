@@ -24,8 +24,6 @@ c. I implemented TCP server / client and UDP server / client, load data from fil
                 When using "make extra", serverM reads encrypted member message from "member_extra.txt".
                 The unencrypted version of "member_extra.txt" is:
                                     james, SODids392
-                                    mary, ie9skdjw@
-                                    john, lxvicjlE
                                     patricia, 3827#o29
                                     michael, Pass12398
 

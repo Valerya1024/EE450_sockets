@@ -289,7 +289,7 @@ void unencrypt(char* str) {
 #endif
 
 
-//int main() {
+// int main() {
 // //     // test_room("S301");
 // //     char username[10];
 // //     memset(username, '\0', 10);
@@ -300,7 +300,7 @@ void unencrypt(char* str) {
 // //     test_member(username, pwd);
 //     char test[MAXLEN];
 //     memset(test, '\0', MAXLEN);
-//     strcpy(test, "Welcome-To-EE450!");
+//     strcpy(test, "maria");
 //     encrypt(test);
 //     printf("%s %lu\n", test, strlen(test));
 //     unencrypt(test);
