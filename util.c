@@ -5,6 +5,7 @@
 #include <string.h>
 #include <math.h>
 
+// look up room by room code
 int lookup_room(room_t* db, char* target) {
     room_t * node = db->next;
     while (node != NULL) {
@@ -19,6 +20,7 @@ int lookup_room(room_t* db, char* target) {
     return ERR_NOT_FOUND;
 }
 
+// add room to linked list
 void insert_room(room_t* db, char* room_code, int count) {
     room_t * new_room = malloc(sizeof(room_t));
     strcpy(new_room->room_code, room_code);
@@ -27,6 +29,7 @@ void insert_room(room_t* db, char* room_code, int count) {
     db->next = new_room;
 }
 
+//load room from file to a linked list
 void load_room(char* file_path, room_t* db, char* room_str) {
     FILE *fp;
     char row[MAXLEN];
@@ -53,6 +56,7 @@ void load_room(char* file_path, room_t* db, char* room_str) {
     fclose(fp);
 }
 
+// load room from string to a linked list
 void load_room_str(room_t* db, char* room_str) {
     int offset = 0;
     char room[MAXLEN];
@@ -62,6 +66,7 @@ void load_room_str(room_t* db, char* room_str) {
     }
 }
 
+// traverse and print
 void print_room(room_t* db) {
     db = db->next;
     while (db != NULL) {
@@ -70,6 +75,7 @@ void print_room(room_t* db) {
     }
 }
 
+// look up and try reserve room
 int reserve_room(room_t* db, char* room_code) {
     room_t * node = db->next;
     while (node != NULL) {
@@ -85,6 +91,7 @@ int reserve_room(room_t* db, char* room_code) {
     return ERR_NOT_FOUND;
 }
 
+// free db
 void destroy_room_db(room_t* db) {
     while (db != NULL) {
         room_t * node = db;
@@ -93,6 +100,7 @@ void destroy_room_db(room_t* db) {
     }
 }
 
+// find member by name and password
 int lookup_member(member_t* db, char* target_name, char* target_pwd) {
     member_t * node = db->next;
     while (node != NULL) {
@@ -107,6 +115,7 @@ int lookup_member(member_t* db, char* target_name, char* target_pwd) {
     return LOGIN_FAIL_USERNAME;
 }
 
+// add member to linked list
 void insert_member(member_t* db, char* username, char* pwd) {
     member_t * new_member = malloc(sizeof(member_t));
     strcpy(new_member->username, username);
@@ -115,6 +124,7 @@ void insert_member(member_t* db, char* username, char* pwd) {
     db->next = new_member;
 }
 
+// free db
 void destroy_member_db(member_t* db) {
     while (db != NULL) {
         member_t * node = db;
@@ -134,10 +144,12 @@ void load_member(char* file_path, member_t* db) {
 
     while (feof(fp) != TRUE)
     {
+        // read row
         fgets(row, MAXLEN, fp);
         //printf("Row: %s", row);
         if (strlen(row) == 0) {break;}
 
+        // parse row
         sscanf(row, "%[^,], %s", username, pwd);
         insert_member(db, username, pwd);
 
